@@ -11,6 +11,7 @@ int main()
 	al_init_image_addon();
 	al_install_mouse();
 	al_install_keyboard();
+	int pos_gracz = 280;
 	int pos_x, pos_y;
 	bool done = false;
 	bool z_gra = false;
@@ -31,6 +32,7 @@ int main()
 	ALLEGRO_BITMAP * instrukcja = al_load_bitmap("przycisk_instrukcja.jpg");
 	ALLEGRO_BITMAP * tlo_instrukcja = al_load_bitmap("instrukcja.jpg");
 	ALLEGRO_BITMAP * tlo_ranking = al_load_bitmap("ranking.jpg");
+	ALLEGRO_BITMAP * gracz = al_load_bitmap("auto.png");
 
 
 	if (!al_init())
@@ -106,22 +108,26 @@ poczatek:
 		done = false;
 		z_gra = false;
 
-			while (!done2)
-			{
-				ALLEGRO_EVENT ev;
-				al_wait_for_event(event_queue, &ev);
+		while (!done2)
+		{
+			ALLEGRO_EVENT ev;
+			al_wait_for_event(event_queue, &ev);
 
-				if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
+			if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
+			{
+				switch (ev.keyboard.keycode)
 				{
-					switch (ev.keyboard.keycode)
-					{case ALLEGRO_KEY_ESCAPE:
-						done2 = true;
-						break;}}
-				al_draw_bitmap(gra, 0, 0, 0);
-				al_flip_display();
+				case ALLEGRO_KEY_ESCAPE:
+					done2 = true;
+					break;
+				}
 			}
-			done2 = false;
-			goto poczatek;
+			al_draw_bitmap(gra, 0, 0, 0);
+			al_draw_bitmap(gracz, pos_gracz, 400, 0);
+			al_flip_display();
+		}
+		done2 = false;
+		goto poczatek;
 	}
 
 	if (z_ranking)

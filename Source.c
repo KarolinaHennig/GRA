@@ -7,12 +7,15 @@
 
 int main()
 {
+restart:
 	al_init();
 	al_init_image_addon();
 	al_install_mouse();
 	al_install_keyboard();
-	int pos_gracz = 280;
+	int pos_gracz_x = 280;
+	int pos_gracz_y = 400;
 	int pos_x, pos_y;
+	int FPS = 60;
 	bool done = false;
 	bool z_gra = false;
 	bool z_ranking = false;
@@ -21,8 +24,10 @@ int main()
 	bool menu = false;
 
 
+
 	ALLEGRO_DISPLAY * okno = al_create_display(800, 550);
 	ALLEGRO_EVENT_QUEUE * event_queue = al_create_event_queue();
+	ALLEGRO_TIMER * timer = NULL;
 	ALLEGRO_BITMAP * tlo = al_load_bitmap("start.jpg");
 	ALLEGRO_BITMAP * start = al_load_bitmap("przycisk_start.jpg");
 	ALLEGRO_BITMAP * ranking = al_load_bitmap("przycis_ranking.jpg");
@@ -35,6 +40,7 @@ int main()
 	ALLEGRO_BITMAP * gracz = al_load_bitmap("auto.png");
 
 
+
 	if (!al_init())
 		al_show_native_message_box(NULL, NULL, NULL, "ALLEGRO INIT FAIL", NULL, NULL);
 	if (!al_init_native_dialog_addon())
@@ -44,9 +50,12 @@ int main()
 	if (!al_install_keyboard())
 		al_show_native_message_box(NULL, NULL, NULL, "ALLEGRO KEYBOARD INIT FAIL", NULL, NULL);
 
+	timer = al_create_timer(1.0 / FPS);
+
 	al_register_event_source(event_queue, al_get_display_event_source(okno));
 	al_register_event_source(event_queue, al_get_mouse_event_source());
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
+	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 
 
 poczatek:
@@ -107,11 +116,16 @@ poczatek:
 	{
 		done = false;
 		z_gra = false;
-
+		int i = 1;
+		al_start_timer(timer);
 		while (!done2)
 		{
+
+
+
 			ALLEGRO_EVENT ev;
 			al_wait_for_event(event_queue, &ev);
+
 
 			if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
 			{
@@ -120,12 +134,28 @@ poczatek:
 				case ALLEGRO_KEY_ESCAPE:
 					done2 = true;
 					break;
+
+				case ALLEGRO_KEY_LEFT:
+					if (pos_gracz_x > 150)
+					{
+						pos_gracz_x -= 160;
+					}
+					break;
+				case ALLEGRO_KEY_RIGHT:
+					if (pos_gracz_x < 550)
+					{
+						pos_gracz_x += 160;
+					}
+					break;
+
 				}
 			}
 			al_draw_bitmap(gra, 0, 0, 0);
-			al_draw_bitmap(gracz, pos_gracz, 400, 0);
+			al_draw_bitmap(gracz, pos_gracz_x, pos_gracz_y, 0);
 			al_flip_display();
 		}
+
+
 		done2 = false;
 		goto poczatek;
 	}

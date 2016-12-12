@@ -15,6 +15,10 @@ restart:
 	int pos_gracz_x = 280;
 	int pos_gracz_y = 400;
 	int pos_x, pos_y;
+	int ruch_droga = 0;
+	int pos_x_przec;
+	int pos_y_przec;
+	int pos_pas=0;
 	int FPS = 60;
 	bool done = false;
 	bool z_gra = false;
@@ -22,7 +26,8 @@ restart:
 	bool z_instrukcja = false;
 	bool done2 = false;
 	bool menu = false;
-
+	int ruch = false;
+	int ruch2 = false;
 
 
 	ALLEGRO_DISPLAY * okno = al_create_display(800, 550);
@@ -38,6 +43,12 @@ restart:
 	ALLEGRO_BITMAP * tlo_instrukcja = al_load_bitmap("instrukcja.jpg");
 	ALLEGRO_BITMAP * tlo_ranking = al_load_bitmap("ranking.jpg");
 	ALLEGRO_BITMAP * gracz = al_load_bitmap("auto.png");
+	ALLEGRO_BITMAP * droga_czesc1 = al_load_bitmap("droga_czesc1.png");
+	ALLEGRO_BITMAP * droga_czesc2 = al_load_bitmap("droga_czesc2.png");
+	ALLEGRO_BITMAP * droga_czesc3 = al_load_bitmap("droga_czesc3.png");
+	ALLEGRO_BITMAP * droga_czesc4 = al_load_bitmap("droga_czesc4.png");
+	ALLEGRO_BITMAP * przeciwnik = al_load_bitmap("przeciwnik.png");
+
 
 
 
@@ -117,6 +128,8 @@ poczatek:
 		done = false;
 		z_gra = false;
 		int i = 1;
+		pos_y_przec = 20;
+		pos_x_przec = (160 + ((rand() % 4) * 150));
 		al_start_timer(timer);
 		while (!done2)
 		{
@@ -150,9 +163,48 @@ poczatek:
 
 				}
 			}
-			al_draw_bitmap(gra, 0, 0, 0);
-			al_draw_bitmap(gracz, pos_gracz_x, pos_gracz_y, 0);
-			al_flip_display();
+
+			if (ruch_droga < 200)
+			{
+				ruch_droga = ruch_droga + 5;
+			}
+			if (ruch_droga >= 200)
+			{ruch_droga = -450;}
+			if (pos_pas<80)
+			{
+				pos_pas = pos_pas + 4;
+			}
+			if(pos_pas>=80)
+			{
+				pos_pas = 0;
+			}
+			if (pos_y_przec < 550)
+			{
+				pos_y_przec = pos_y_przec + 8;
+			}
+
+			else if ((pos_y_przec = 380) && (pos_x_przec >= pos_gracz_x - 30) && (pos_x_przec <= pos_gracz_x + 30))
+			{
+				done2 = true;
+			}
+			else
+			{
+				pos_y_przec = 20;
+				pos_x_przec = (160 + ((rand() % 4) * 150));
+			}
+
+
+
+
+
+				al_draw_bitmap(droga_czesc1, 0, 0, 0);
+				al_draw_bitmap(droga_czesc2, 0, ruch_droga, 0);
+				al_draw_bitmap(droga_czesc3, 0, 0, 0);
+				al_draw_bitmap(droga_czesc4, 0, pos_pas, 0);
+				al_draw_bitmap(gracz, pos_gracz_x, pos_gracz_y, 0);
+				al_draw_bitmap(przeciwnik, pos_x_przec, pos_y_przec, 0);
+				al_flip_display();
+
 		}
 
 

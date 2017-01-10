@@ -2,17 +2,22 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5\mouse.h>
 #include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include "allegro5\keyboard.h"
+
 
 
 int main()
 {
+	int dlugosc_gry = 0;
+	int timer2 = 0;
 restart:
 	al_init();
 	al_init_image_addon();
 	al_init_font_addon();
 	al_install_mouse();
 	al_install_keyboard();
+	al_init_ttf_addon();
 	int pos_gracz_x = 295;
 	int pos_gracz_y = 400;
 	int pos_x, pos_y;
@@ -32,6 +37,7 @@ restart:
 	int ruch = false;
 	int ruch2 = false;
 	int hp = 5;
+
 
 
 	ALLEGRO_DISPLAY * okno = al_create_display(800, 550);
@@ -54,8 +60,9 @@ restart:
 	ALLEGRO_BITMAP * przeciwnik = al_load_bitmap("przeciwnik.png");
 	ALLEGRO_BITMAP * czesc1 = al_load_bitmap("czesc1.png");
 	ALLEGRO_BITMAP * czesc2 = al_load_bitmap("czesc2.png");
-	ALLEGRO_BITMAP * element= al_load_bitmap("czesc1.png");
-	ALLEGRO_FONT    *czcionka = al_create_builtin_font("ARIALNB.ttf");
+	ALLEGRO_BITMAP * element = al_load_bitmap("czesc1.png");
+	ALLEGRO_FONT   *czcionka = al_load_ttf_font("ARIALNB.ttf",16,0);
+	ALLEGRO_FONT   *czcionka24 = al_load_ttf_font("ARIALNB.ttf", 24, 0);
 
 
 
@@ -146,12 +153,15 @@ poczatek:
 		pos_x_czesci = (150 + ((rand() % 4) * 150));
 		double czas;
 		double czas2;
+		hp = 100;
+		double roznica;
 		al_start_timer(timer);
+		time_t timer1;
 		while (!done2)
 		{
 
-
-
+			timer1 = (clock() / CLOCKS_PER_SEC);
+			dlugosc_gry = (timer1 - timer2);
 			ALLEGRO_EVENT ev;
 			al_wait_for_event(event_queue, &ev);
 
@@ -196,18 +206,18 @@ poczatek:
 
 			if (pos_y_przec < 350)
 			{
-				pos_y_przec = pos_y_przec + 5;
+				pos_y_przec = pos_y_przec + 8;
 			}
 			else if ((pos_y_przec = 340) && (pos_x_przec >= pos_gracz_x - 30) && (pos_x_przec <= pos_gracz_x + 30))
 			{
-				hp = hp - 10;
+				hp = (hp - 25);
 				goto ruch;
 
 			}
 			else {
 			ruch:
-				rand2 = (rand()%4);
-				pos_x_przec = (160 + (rand2*150));
+				rand2 = (rand() % 4);
+				pos_x_przec = (160 + (rand2 * 150));
 				pos_y_przec = -20;
 			}
 
@@ -220,25 +230,33 @@ poczatek:
 			}
 			else if (((pos_y_czesci = 360) && (pos_x_czesci >= pos_gracz_x - 30) && (pos_x_czesci <= pos_gracz_x + 30)))
 			{
-				hp = hp + 5;
-				goto ruch2;
+				if (hp + 15 <= 100) { hp = hp + 15; goto ruch2; }
+				if ((hp < 100) && (hp + 15>100)) { hp = 100; goto ruch2;}
+				else goto ruch2;
 			}
+
 
 			else {
-            ruch2:
+			ruch2:
 			jeszcze_raz:
-				rand1 = (rand()%4);
-				pos_x_czesci = (150 + ( rand1* 150));
-				if (rand1==rand2) { goto jeszcze_raz; }
+				rand1 = (rand() % 4);
+				pos_x_czesci = (150 + (rand1 * 150));
+				if (rand1 == rand2) { goto jeszcze_raz; }
 				pos_y_czesci = -20;
-			losowanie = (rand() % 2);
-			if(losowanie==1)
-			{element= al_load_bitmap("czesc2.png");}
-			else{ element = al_load_bitmap("czesc1.png"); }
+				losowanie = (rand() % 2);
+				if (losowanie == 1)
+				{
+					element = al_load_bitmap("czesc2.png");
+				}
+				else { element = al_load_bitmap("czesc1.png"); }
 			}
 
 
-
+			if (hp <= 0)
+			{
+				done2 = true;
+				timer2=timer1;
+			}
 
 
 
@@ -249,6 +267,10 @@ poczatek:
 			al_draw_bitmap(przeciwnik, pos_x_przec, pos_y_przec, 0);
 			al_draw_bitmap(element, pos_x_czesci, pos_y_czesci, 0);
 			al_draw_bitmap(gracz, pos_gracz_x, pos_gracz_y, 0);
+			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 0, 0, 0, "SPRAWNOSC:");
+			al_draw_textf(czcionka24, al_map_rgb(0, 255, 0), 20, 15, 0, "%d%s", hp, "%");
+			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 0, 50, 100, "CZAS GRY:");
+			al_draw_textf(czcionka24, al_map_rgb(0, 255, 0), 35, 70, 100, "%d",dlugosc_gry);
 			al_flip_display();
 
 		}

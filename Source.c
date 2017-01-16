@@ -3,15 +3,38 @@
 #include <allegro5\mouse.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
-#include "allegro5\keyboard.h"
+#include <fstream>
+#include <string>
 
+
+
+using namespace std;
 
 
 int main()
 {
 	int dlugosc_gry = 0;
 	int timer2 = 0;
-restart:
+	int ranking_czas[5];
+	string nazwa_gracza;
+	string nazwa1, nazwa2, nazwa3, nazwa4, nazwa5;
+	fstream plik;
+	plik.open("ranking.txt", ios::in | ios::out | ios::binary);
+	if (plik.good() == true)
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			plik >> ranking_czas[i];
+		}
+	}
+
+	fstream plik2;
+	plik2.open("ranking_nazwa.txt", ios::in | ios::out );
+	if (plik2.good() == true)
+	{
+		plik2 >> nazwa1 >> nazwa2 >> nazwa3 >> nazwa4 >> nazwa5;
+	}
+
 	al_init();
 	al_init_image_addon();
 	al_init_font_addon();
@@ -28,15 +51,21 @@ restart:
 	int pos_x_czesci;
 	int pos_y_czesci;
 	int FPS = 60;
+	int pomocznicza[11];
 	bool done = false;
 	bool z_gra = false;
 	bool z_ranking = false;
 	bool z_instrukcja = false;
 	bool done2 = false;
 	bool menu = false;
+	bool wpis_nazwy = false;
+	bool wpis_do_rankingu = false;
 	int ruch = false;
 	int ruch2 = false;
 	int hp = 5;
+	int poz_rank;
+	int p;
+
 
 
 
@@ -57,24 +86,18 @@ restart:
 	ALLEGRO_BITMAP * droga_czesc2 = al_load_bitmap("droga_czesc2.png");
 	ALLEGRO_BITMAP * droga_czesc3 = al_load_bitmap("droga_czesc3.png");
 	ALLEGRO_BITMAP * droga_czesc4 = al_load_bitmap("droga_czesc4.png");
+	ALLEGRO_BITMAP * tlo_nazwa_gracza = al_load_bitmap("nazwa_gracza.jpg");
 	ALLEGRO_BITMAP * przeciwnik = al_load_bitmap("przeciwnik.png");
 	ALLEGRO_BITMAP * czesc1 = al_load_bitmap("czesc1.png");
 	ALLEGRO_BITMAP * czesc2 = al_load_bitmap("czesc2.png");
 	ALLEGRO_BITMAP * element = al_load_bitmap("czesc1.png");
-	ALLEGRO_FONT   *czcionka = al_load_ttf_font("ARIALNB.ttf",16,0);
+	ALLEGRO_FONT   *czcionka = al_load_ttf_font("ARIALNB.ttf", 16, 0);
 	ALLEGRO_FONT   *czcionka24 = al_load_ttf_font("ARIALNB.ttf", 24, 0);
 
 
 
 
-	if (!al_init())
-		al_show_native_message_box(NULL, NULL, NULL, "ALLEGRO INIT FAIL", NULL, NULL);
-	if (!al_init_native_dialog_addon())
-		al_show_native_message_box(NULL, NULL, NULL, "ALLEGRO NATIVE DIALOG INIT FAIL", NULL, NULL);
-	if (!al_init_image_addon())
-		al_show_native_message_box(NULL, NULL, NULL, "ALLEGRO IMAGE INIT FAIL", NULL, NULL);
-	if (!al_install_keyboard())
-		al_show_native_message_box(NULL, NULL, NULL, "ALLEGRO KEYBOARD INIT FAIL", NULL, NULL);
+
 
 	timer = al_create_timer(1.0 / FPS);
 
@@ -85,9 +108,61 @@ restart:
 
 
 poczatek:
+
+	if(wpis_do_rankingu)
+	{
+		p = 0;
+		for (int i = 0; i<5; i++)
+		{
+			pomocznicza[i + 1] = ranking_czas[i];
+		}
+		while (dlugosc_gry < ranking_czas[p])
+		{
+			p++;
+		}
+		if(p==4)
+		{
+			nazwa5 = nazwa_gracza;
+		}
+        if(p==3)
+		{
+			nazwa5 = nazwa4;
+			nazwa4 = nazwa_gracza;
+		}
+		if(p==2)
+		{
+			nazwa5 = nazwa4;
+			nazwa4 = nazwa3;
+			nazwa3 = nazwa_gracza;
+		}
+		if(p==1)
+		{
+			nazwa5 = nazwa4;
+			nazwa4 = nazwa3;
+			nazwa3 = nazwa2;
+			nazwa2 = nazwa_gracza;
+		}
+		if (p == 0)
+		{
+			nazwa5 = nazwa4;
+			nazwa4 = nazwa3;
+			nazwa3 = nazwa2;
+			nazwa2 = nazwa1;
+			nazwa1 = nazwa_gracza;
+		}
+		ranking_czas[p] = dlugosc_gry;
+		for (p = p + 1; p<5; p++)
+		{
+			ranking_czas[p] = pomocznicza[p];
+		}
+		wpis_do_rankingu = false;
+	}
+
+
 	al_hide_mouse_cursor(okno);
 	while (!done)
 	{
+
 		ALLEGRO_EVENT ev;
 		al_wait_for_event(event_queue, &ev);
 
@@ -108,13 +183,14 @@ poczatek:
 			{
 				if ((pos_x > 273) && (pos_x < 518) && (pos_y > 426) && (pos_y < 515)) //PRZYCISK WYJSCIE
 				{
+
 					done = true;
 				}
 
 				else if ((pos_x > 273) && (pos_x < 518) && (pos_y > 50) && (pos_y < 131)) //PRZYCISK START
 				{
 					done = true;
-					z_gra = true;
+					wpis_nazwy = true;
 				}
 
 				else if ((pos_x > 273) && (pos_x < 518) && (pos_y > 170) && (pos_y < 259)) //PRZYCISK RANKING
@@ -138,6 +214,119 @@ poczatek:
 		al_draw_bitmap(kursor, pos_x, pos_y, 0);
 		al_flip_display();
 	}
+
+	if (wpis_nazwy)
+	{
+		nazwa_gracza.clear();
+		bool done_wpis = false;
+		while (!done_wpis)
+		{
+
+
+			ALLEGRO_EVENT ev3;
+			al_wait_for_event(event_queue, &ev3);
+
+
+			if (ev3.type == ALLEGRO_EVENT_KEY_DOWN)
+			{
+				switch (ev3.keyboard.keycode)
+				{
+				case ALLEGRO_KEY_ESCAPE:
+					done_wpis = true;
+					break;
+				case ALLEGRO_KEY_Q:
+					nazwa_gracza = nazwa_gracza+"q";
+					break;
+				case ALLEGRO_KEY_W:
+					nazwa_gracza = nazwa_gracza+"w";
+					break;
+				case ALLEGRO_KEY_E:
+					nazwa_gracza = nazwa_gracza + "e";
+					break;
+				case ALLEGRO_KEY_R:
+					nazwa_gracza = nazwa_gracza + "r";
+					break;
+				case ALLEGRO_KEY_T:
+					nazwa_gracza = nazwa_gracza + "t";
+					break;
+				case ALLEGRO_KEY_Y:
+					nazwa_gracza = nazwa_gracza + "y";
+					break;
+				case ALLEGRO_KEY_U:
+					nazwa_gracza = nazwa_gracza + "u";
+					break;
+				case ALLEGRO_KEY_I:
+					nazwa_gracza = nazwa_gracza + "i";
+					break;
+				case ALLEGRO_KEY_O:
+					nazwa_gracza = nazwa_gracza + "o";
+					break;
+				case ALLEGRO_KEY_P:
+					nazwa_gracza = nazwa_gracza + "p";
+					break;
+				case ALLEGRO_KEY_A:
+					nazwa_gracza = nazwa_gracza + "a";
+					break;
+				case ALLEGRO_KEY_S:
+					nazwa_gracza = nazwa_gracza + "s";
+					break;
+				case ALLEGRO_KEY_D:
+					nazwa_gracza = nazwa_gracza + "d";
+					break;
+				case ALLEGRO_KEY_F:
+					nazwa_gracza = nazwa_gracza + "f";
+					break;
+				case ALLEGRO_KEY_G:
+					nazwa_gracza = nazwa_gracza + "g";
+					break;
+				case ALLEGRO_KEY_H:
+					nazwa_gracza = nazwa_gracza + "h";
+					break;
+				case ALLEGRO_KEY_J:
+					nazwa_gracza = nazwa_gracza + "j";
+					break;
+				case ALLEGRO_KEY_K:
+					nazwa_gracza = nazwa_gracza + "k";
+					break;
+				case ALLEGRO_KEY_L:
+					nazwa_gracza = nazwa_gracza + "l";
+					break;
+				case ALLEGRO_KEY_Z:
+					nazwa_gracza = nazwa_gracza + "z";
+					break;
+				case ALLEGRO_KEY_X:
+					nazwa_gracza = nazwa_gracza + "x";
+					break;
+				case ALLEGRO_KEY_C:
+					nazwa_gracza = nazwa_gracza + "c";
+					break;
+				case ALLEGRO_KEY_V:
+					nazwa_gracza = nazwa_gracza + "v";
+					break;
+				case ALLEGRO_KEY_B:
+					nazwa_gracza = nazwa_gracza + "b";
+					break;
+				case ALLEGRO_KEY_N:
+					nazwa_gracza = nazwa_gracza + "n";
+					break;
+				case ALLEGRO_KEY_M:
+					nazwa_gracza = nazwa_gracza + "m";
+					break;
+				case ALLEGRO_KEY_ENTER:
+					done_wpis = true;
+					z_gra = true;
+					break;
+				}
+
+			}
+			al_draw_bitmap(tlo_nazwa_gracza, 0, 0, 0);
+			al_draw_textf(czcionka, al_map_rgb(213, 0, 0), 310, 210, 0, nazwa_gracza.c_str());
+			al_flip_display();
+		}
+		done_wpis = false;
+		wpis_nazwy = false;
+	}
+
 	if (z_gra)
 	{
 		int powtarzanie_ruchu = 0;
@@ -172,6 +361,7 @@ poczatek:
 				{
 				case ALLEGRO_KEY_ESCAPE:
 					done2 = true;
+					timer2 = timer1;
 					break;
 
 				case ALLEGRO_KEY_LEFT:
@@ -231,7 +421,7 @@ poczatek:
 			else if (((pos_y_czesci = 360) && (pos_x_czesci >= pos_gracz_x - 30) && (pos_x_czesci <= pos_gracz_x + 30)))
 			{
 				if (hp + 15 <= 100) { hp = hp + 15; goto ruch2; }
-				if ((hp < 100) && (hp + 15>100)) { hp = 100; goto ruch2;}
+				if ((hp < 100) && (hp + 15>100)) { hp = 100; goto ruch2; }
 				else goto ruch2;
 			}
 
@@ -255,7 +445,8 @@ poczatek:
 			if (hp <= 0)
 			{
 				done2 = true;
-				timer2=timer1;
+				timer2 = timer1;
+				wpis_do_rankingu = true;
 			}
 
 
@@ -270,13 +461,15 @@ poczatek:
 			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 0, 0, 0, "SPRAWNOSC:");
 			al_draw_textf(czcionka24, al_map_rgb(0, 255, 0), 20, 15, 0, "%d%s", hp, "%");
 			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 0, 50, 100, "CZAS GRY:");
-			al_draw_textf(czcionka24, al_map_rgb(0, 255, 0), 35, 70, 100, "%d",dlugosc_gry);
+			al_draw_textf(czcionka24, al_map_rgb(0, 255, 0), 35, 70, 100, "%d", dlugosc_gry);
 			al_flip_display();
 
 		}
 
 
+
 		done2 = false;
+
 		goto poczatek;
 	}
 
@@ -285,6 +478,7 @@ poczatek:
 
 		done = false;
 		z_ranking = false;
+		poz_rank = 250;
 		while (!done2)
 		{
 			ALLEGRO_EVENT ev;
@@ -299,12 +493,27 @@ poczatek:
 					break;
 				}
 			}
+
 			al_draw_bitmap(tlo_ranking, 0, 0, 0);
+
+			for (int i = 0; i <5; i++)
+			{
+				al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 300, 250+(i*20), 0, "%d", ranking_czas[i]);
+			}
+			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 450, 250, 0, nazwa1.c_str());
+			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 450, 270, 0, nazwa2.c_str());
+			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 450, 290, 0, nazwa3.c_str());
+			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 450, 310, 0, nazwa4.c_str());
+			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 450, 330, 0, nazwa5.c_str());
+
+
+
 			al_flip_display();
 		}
 		done2 = false;
 		goto poczatek;
 	}
+
 	if (z_instrukcja)
 	{
 		done = false;
@@ -330,12 +539,16 @@ poczatek:
 		goto poczatek;
 	}
 
-
+	plik << ranking_czas[0] << " " << ranking_czas[1] << " " << ranking_czas[2] << " " << ranking_czas[3] << " " << ranking_czas[4];
+	plik.close();
+	plik2 << nazwa1 << endl << nazwa2 << endl << nazwa3 << endl << nazwa4 << endl << nazwa5;
+	plik2.close();
 	al_destroy_bitmap(kursor);
 	al_destroy_bitmap(start);
 	al_destroy_bitmap(ranking);
 	al_destroy_bitmap(wyjscie);
 	al_destroy_bitmap(tlo);
 	al_destroy_display(okno);
+
 	return 0;
 }

@@ -34,6 +34,13 @@ int main()
 	{
 		plik2 >> nazwa1 >> nazwa2 >> nazwa3 >> nazwa4 >> nazwa5;
 	}
+	plik.close();
+	plik2.close();
+
+	ofstream plik3;
+	plik3.open("ranking.txt", ios::in | ios::out | ios::binary);
+	ofstream plik4;
+	plik4.open("ranking_nazwa.txt", ios::in | ios::out);
 
 	al_init();
 	al_init_image_addon();
@@ -91,6 +98,7 @@ int main()
 	ALLEGRO_BITMAP * czesc1 = al_load_bitmap("czesc1.png");
 	ALLEGRO_BITMAP * czesc2 = al_load_bitmap("czesc2.png");
 	ALLEGRO_BITMAP * element = al_load_bitmap("czesc1.png");
+	ALLEGRO_BITMAP * lvl_up = al_load_bitmap("level_up.png");
 	ALLEGRO_FONT   *czcionka = al_load_ttf_font("ARIALNB.ttf", 16, 0);
 	ALLEGRO_FONT   *czcionka24 = al_load_ttf_font("ARIALNB.ttf", 24, 0);
 
@@ -151,10 +159,11 @@ poczatek:
 			nazwa1 = nazwa_gracza;
 		}
 		ranking_czas[p] = dlugosc_gry;
-		for (p = p + 1; p<5; p++)
+		for (p = p + 1; p+1<5; p++)
 		{
 			ranking_czas[p] = pomocznicza[p];
 		}
+
 		wpis_do_rankingu = false;
 	}
 
@@ -330,7 +339,11 @@ poczatek:
 	if (z_gra)
 	{
 		int powtarzanie_ruchu = 0;
+		float szybkosc_ruchu = 3;
+		int xx = 600;
 		done = false;
+		bool napis=false;
+		bool szybkosc = false;
 		bool kolizja = false;
 		z_gra = false;
 		int i = 1;
@@ -393,23 +406,25 @@ poczatek:
 				powtarzanie_ruchu = 0;
 			}
 
+			 if (pos_y_przec>360 && pos_gracz_y<460  && pos_x_przec >= pos_gracz_x - 30 && pos_x_przec <= pos_gracz_x + 30)
+			 {
+				 hp = (hp - 25);
+				 goto ruch;
+			 }
+			 else if (pos_y_przec < 460)
+			 {
+				 pos_y_przec = pos_y_przec + szybkosc_ruchu;
+			 }
+			 else
+			 {
+			 ruch:
+			 jeszcze_raz2:
+				 pos_y_przec = -20;
+				 rand2 = (rand() % 4);
+				 pos_x_przec = (160 + (rand2 * 150));
+				 if (rand1 == rand2) { goto jeszcze_raz2; }
 
-			if (pos_y_przec < 350)
-			{
-				pos_y_przec = pos_y_przec + 8;
-			}
-			else if ((pos_y_przec = 340) && (pos_x_przec >= pos_gracz_x - 30) && (pos_x_przec <= pos_gracz_x + 30))
-			{
-				hp = (hp - 25);
-				goto ruch;
-
-			}
-			else {
-			ruch:
-				rand2 = (rand() % 4);
-				pos_x_przec = (160 + (rand2 * 150));
-				pos_y_przec = -20;
-			}
+			 }
 
 
 
@@ -448,6 +463,20 @@ poczatek:
 				timer2 = timer1;
 				wpis_do_rankingu = true;
 			}
+			if (dlugosc_gry%10 == 0)
+			{
+
+				szybkosc = true;
+				napis = true;
+
+			}
+			else { napis = false; }
+
+			if(szybkosc)
+			{
+				szybkosc_ruchu = (szybkosc_ruchu + 0.05);
+				szybkosc = false;
+			}
 
 
 
@@ -462,6 +491,11 @@ poczatek:
 			al_draw_textf(czcionka24, al_map_rgb(0, 255, 0), 20, 15, 0, "%d%s", hp, "%");
 			al_draw_textf(czcionka, al_map_rgb(0, 255, 0), 0, 50, 100, "CZAS GRY:");
 			al_draw_textf(czcionka24, al_map_rgb(0, 255, 0), 35, 70, 100, "%d", dlugosc_gry);
+			if (napis)
+			{
+				al_draw_bitmap(lvl_up, 270, 100, 0);
+			}
+
 			al_flip_display();
 
 		}
@@ -539,15 +573,20 @@ poczatek:
 		goto poczatek;
 	}
 
-	plik << ranking_czas[0] << " " << ranking_czas[1] << " " << ranking_czas[2] << " " << ranking_czas[3] << " " << ranking_czas[4];
-	plik.close();
-	plik2 << nazwa1 << endl << nazwa2 << endl << nazwa3 << endl << nazwa4 << endl << nazwa5;
-	plik2.close();
+	plik3 << ranking_czas[0] << " " << ranking_czas[1] << " " << ranking_czas[2] << " " << ranking_czas[3] << " " << ranking_czas[4];
+	plik3.close();
+	plik4 << nazwa1 << endl << nazwa2 << endl << nazwa3 << endl << nazwa4 << endl << nazwa5;
+	plik4.close();
 	al_destroy_bitmap(kursor);
 	al_destroy_bitmap(start);
 	al_destroy_bitmap(ranking);
 	al_destroy_bitmap(wyjscie);
 	al_destroy_bitmap(tlo);
+	al_destroy_bitmap(lvl_up);
+	al_destroy_bitmap(tlo_instrukcja);
+	al_destroy_bitmap(gracz);
+	al_destroy_bitmap(element);
+	al_destroy_bitmap(przeciwnik);
 	al_destroy_display(okno);
 
 	return 0;
